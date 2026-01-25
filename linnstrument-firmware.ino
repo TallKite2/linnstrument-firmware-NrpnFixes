@@ -462,6 +462,7 @@ enum DisplayMode {
   displayCCForZ,
   displayPlayedTouchModeConfig,
   displayCCForFader,
+  displayLowRowBendConfig,
   displayLowRowCCXConfig,
   displayLowRowCCXYZConfig,
   displayCCForSwitchCC65,
@@ -553,6 +554,11 @@ enum LowRowMode {
   lowRowCCXYZ
 };
 
+enum LowRowBendBehavior {
+  lowRowBendBend = 0,
+  lowRowBendTranspose = 1
+};
+
 enum LowRowCCBehavior {
   lowRowCCHold = 0,
   lowRowCCFader = 1
@@ -640,6 +646,7 @@ struct SplitSettings {
   byte colorSequencerDisabled;            // color for sequencer low row step that's not being played
   byte playedTouchMode;                   // see PlayedTouchMode values
   byte lowRowMode;                        // see LowRowMode values
+  byte lowRowBendBehavior;                // see LowRowBendBehavior values
   byte lowRowCCXBehavior;                 // see LowRowCCBehavior values
   unsigned short ccForLowRow;             // 0-128 (with 128 being placeholder for ChannelPressure)
   byte lowRowCCXYZBehavior;               // see LowRowCCBehavior values

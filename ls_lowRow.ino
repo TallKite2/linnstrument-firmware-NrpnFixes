@@ -164,8 +164,35 @@ void handleLowRowState(boolean newVelocity, short pitchBend, short timbre, byte 
             }
             case lowRowBend:
             {
-              if (pitchBend != SHRT_MAX) {
-                preSendPitchBend(sensorSplit, pitchBend);
+              if (Split[sensorSplit].lowRowBendBehavior == lowRowBendBend) {
+                if (pitchBend != SHRT_MAX) {
+                  preSendPitchBend(sensorSplit, pitchBend);
+                }
+              }
+              else if (Split[sensorSplit].lowRowBendBehavior == lowRowBendTranspose) {
+                startBufferedLeds();
+
+                // if both splits are set to low row transpose, and split is active,
+                // combine both split's low rows into a single full-width low row transpose
+                // that changes the pitch transpose of both splits
+                if (Split[LEFT].lowRowMode == lowRowBend && Split[LEFT].lowRowBendBehavior == lowRowBendTranspose &&
+                    Split[RIGHT].lowRowMode == lowRowBend && Split[RIGHT].lowRowBendBehavior == lowRowBendTranspose &&
+                    (Global.splitActive || displayMode == displaySplitPoint)) {
+                  lowCol = 1;
+                  highCol = NUMCOLS;
+                  signed char pitch = sensorCol - (lowCol + (highCol - lowCol - 1) / 2);
+                  Split[LEFT].transposePitch = pitch;
+                  Split[RIGHT].transposePitch = pitch;
+                  paintLowRowTranspose(Global.currentPerSplit);
+                }
+                // otherwise treat the low row transpose specifically for the appropriate split
+                else {
+                  Split[sensorSplit].transposePitch = sensorCol - (lowCol + (highCol - lowCol - 1) / 2);
+                  paintLowRowTranspose(sensorSplit);
+                }
+
+                paintOctaveTransposeLed();
+                finishBufferedLeds();
               }
               break;
             }
@@ -323,9 +350,11 @@ void lowRowStart() {
       preSendSustain(sensorSplit, 127);
       break;
     case lowRowBend:
-      lowRowBendActive[sensorSplit] = true;
-      preResetLastMidiPitchBend(sensorSplit);
-      startLowRowContinuousExpression();
+      if (Split[sensorSplit].lowRowBendBehavior == lowRowBendBend) {
+        lowRowBendActive[sensorSplit] = true;
+        preResetLastMidiPitchBend(sensorSplit);
+        startLowRowContinuousExpression();
+      }
       break;
     case lowRowCCX:
       lowRowCCXActive[sensorSplit] = true;
@@ -405,9 +434,11 @@ void lowRowStop() {
               lowRowInitialColumn[sensorSplit] = -1;
               break;
             case lowRowBend:
-              // reset the pitchbend since no low row touch is active anymore
-              lowRowBendActive[sensorSplit] = false;
-              preSendPitchBend(sensorSplit, 0);
+              if (Split[sensorSplit].lowRowBendBehavior == lowRowBendBend) {
+                // reset the pitchbend since no low row touch is active anymore
+                lowRowBendActive[sensorSplit] = false;
+                preSendPitchBend(sensorSplit, 0);
+              }
               break;
             case lowRowCCX:
               lowRowCCXActive[sensorSplit] = false;
