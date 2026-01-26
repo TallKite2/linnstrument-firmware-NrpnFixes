@@ -343,8 +343,59 @@ void handleMidiInput(unsigned long nowMicros) {
         break;
       }
 
+      case MIDIChannelPressure:
+      {
+        if (split != -1) {
+          bool handled = false;
+
+          for (byte f = 0; f < 8; ++f) {
+            unsigned short cc = Split[split].ccForFader[f];
+            if (cc == 128) {
+              ccFaderValues[split][cc] = midiData1;
+              handled = true;
+            }
+          }
+
+          if (handled)
+          {
+            if ((displayMode == displayNormal && Split[split].ccFaders) || displayMode == displayVolume) {
+              updateDisplay();
+            }
+          }
+        }
+
+        break;
+      }
+
       case MIDIControlChange:
       {
+        // try to match incoming CC message to the faders that generate CCs
+        // if faders are set up to handle a particular incoming CC,
+        // these CCs will update the faders and not control any of the
+        // LinnStrument features
+        if (split != -1) {
+          bool handled = false;
+
+          for (byte f = 0; f < 8; ++f) {
+            unsigned short cc = Split[split].ccForFader[f];
+            if (cc == midiData1) {
+              ccFaderValues[split][cc] = midiData2;
+              handled = true;
+            }
+          }
+
+          // if the CC was handled by faders, update the display if needed
+          if (handled)
+          {
+            if ((displayMode == displayNormal && Split[split].ccFaders) || displayMode == displayVolume) {
+              updateDisplay();
+            }
+            break;
+          }
+        }
+
+        // handle the CC message by trying to match it to any of the
+        // supported incoming MIDI CC messages
         switch (midiData1) {
           case 6:
             // if an NRPN or RPN parameter was selected, start constituting the data
@@ -354,22 +405,6 @@ void handleMidiInput(unsigned long nowMicros) {
               lastDataMsb = midiData2;
               break;
             }
-          case 1:
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-          case 7:
-          case 8:
-            if (split != -1) {
-              unsigned short ccForFader = Split[split].ccForFader[midiData1-1];
-              ccFaderValues[split][ccForFader] = midiData2;
-              if ((displayMode == displayNormal && Split[split].ccFaders) ||
-                  displayMode == displayVolume) {
-                updateDisplay();
-              }
-            }
-            break;
           case 9:
             if (userFirmwareActive && midiChannel < NUMROWS && (midiData2 == 0 || midiData2 == 1)) {
               userFirmwareSlideMode[midiChannel] = midiData2;

@@ -27,19 +27,23 @@ Status     Data       Message                 Used for
 MIDI Control Change input
 =========================
 
-| CC Number | Used for
-| ----------|--------------------------------------------------------------------------------------------------
-| 1-8       | Change the position of the CC faders, the split is determined by its active MIDI mode channels
-| 9         | Configure User Firmware X-axis row slide, the channel specifies the row (0: disable, 1: enable)
-| 10        | Configure User Firmware X-axis data, the channel specifies the row, default is off (0: disable, 1: enable)
-| 11        | Configure User Firmware Y-axis data, the channel specifies the row, default is off (0: disable, 1: enable)
-| 12        | Configure User Firmware Z-axis data, the channel specifies the row, default is off (0: disable, 1: enable)
-| 13        | Configure User Firmware MIDI decimation rate in milliseconds (minimum 12 ms in low power mode)
-| 20        | Column coordinate for cell color change with CC 22 (starts from 0)
-| 21        | Row coordinate for cell color change with CC 22 (starts from 0)
-| 22        | Change the color of the cell with the provided column and row coordinates see color value table below, 11+: default color
-| 23        | Make current custom cell colors persistent as pattern (0-2) 
-| 24        | Clear persisted custom cell colors pattern (0-2)
+If the CC faders are assigned to any other CC numbers than the default 1-8 CC numbers, those will be
+used for control change input of the faders. If the CC numbers conflict with internal LinnStrument
+features, than the CC faders will take precedence.
+
+| CC Number     | Used for
+| --------------|--------------------------------------------------------------------------------------------------
+| 1-8 (default) | Change the position of the CC faders, the split is determined by its active MIDI mode channels
+| 9             | Configure User Firmware X-axis row slide, the channel specifies the row (0: disable, 1: enable)
+| 10            | Configure User Firmware X-axis data, the channel specifies the row, default is off (0: disable, 1: enable)
+| 11            | Configure User Firmware Y-axis data, the channel specifies the row, default is off (0: disable, 1: enable)
+| 12            | Configure User Firmware Z-axis data, the channel specifies the row, default is off (0: disable, 1: enable)
+| 13            | Configure User Firmware MIDI decimation rate in milliseconds (minimum 12 ms in low power mode)
+| 20            | Column coordinate for cell color change with CC 22 (starts from 0)
+| 21            | Row coordinate for cell color change with CC 22 (starts from 0)
+| 22            | Change the color of the cell with the provided column and row coordinates see color value table below, 11+: default color
+| 23            | Make current custom cell colors persistent as pattern (0-2) 
+| 24            | Clear persisted custom cell colors pattern (0-2)
 
 NRPN input
 ==========
