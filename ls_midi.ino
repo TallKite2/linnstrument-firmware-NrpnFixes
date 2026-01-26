@@ -1808,10 +1808,11 @@ void preResetMidiExpression(byte split) {
     {
       for (byte ch = 0; ch < 16; ++ch) {
         if (Split[split].midiChanSet[ch]) {
-          midiSendPitchBend(0, ch+1);
+          byte channel = ch + 1;
+          midiSendPitchBend(0, channel);
           byte note = 128; // this is invalid on purpose
-          preSendTimbre(split, 0, note, ch);
-          preSendLoudness(split, 0, 0, note, ch);
+          preSendTimbre(split, 0, note, channel);
+          preSendLoudness(split, 0, 0, note, channel);
         }
       }
       break;
