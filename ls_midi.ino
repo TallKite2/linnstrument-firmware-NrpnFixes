@@ -286,6 +286,7 @@ void handleMidiInput(unsigned long nowMicros) {
     }
 
     int split = determineSplitForChannel(midiChannel);
+    int ccSplit = determineControlChangeSplitForChannel(midiChannel);
 
     if (midiStatus == MIDISongPositionPointer) {
       receivedSongPositionPointer = true;
@@ -345,20 +346,20 @@ void handleMidiInput(unsigned long nowMicros) {
 
       case MIDIChannelPressure:
       {
-        if (split != -1) {
+        if (ccSplit != -1) {
           bool handled = false;
 
           for (byte f = 0; f < 8; ++f) {
-            unsigned short cc = Split[split].ccForFader[f];
+            unsigned short cc = Split[ccSplit].ccForFader[f];
             if (cc == 128) {
-              ccFaderValues[split][cc] = midiData1;
+              ccFaderValues[ccSplit][cc] = midiData1;
               handled = true;
             }
           }
 
           if (handled)
           {
-            if ((displayMode == displayNormal && Split[split].ccFaders) || displayMode == displayVolume) {
+            if ((displayMode == displayNormal && Split[ccSplit].ccFaders) || displayMode == displayVolume) {
               updateDisplay();
             }
           }
@@ -373,13 +374,13 @@ void handleMidiInput(unsigned long nowMicros) {
         // if faders are set up to handle a particular incoming CC,
         // these CCs will update the faders and not control any of the
         // LinnStrument features
-        if (split != -1) {
+        if (ccSplit != -1) {
           bool handled = false;
 
           for (byte f = 0; f < 8; ++f) {
-            unsigned short cc = Split[split].ccForFader[f];
+            unsigned short cc = Split[ccSplit].ccForFader[f];
             if (cc == midiData1) {
-              ccFaderValues[split][cc] = midiData2;
+              ccFaderValues[ccSplit][cc] = midiData2;
               handled = true;
             }
           }
@@ -387,7 +388,7 @@ void handleMidiInput(unsigned long nowMicros) {
           // if the CC was handled by faders, update the display if needed
           if (handled)
           {
-            if ((displayMode == displayNormal && Split[split].ccFaders) || displayMode == displayVolume) {
+            if ((displayMode == displayNormal && Split[ccSplit].ccFaders) || displayMode == displayVolume) {
               updateDisplay();
             }
             break;
@@ -541,6 +542,35 @@ signed char determineSplitForChannel(byte channel) {
   return -1;
 }
 
+signed char determineControlChangeSplitForChannel(byte channel) {
+  if (channel > 15) {
+    return -1;
+  }
+
+  for (byte split = LEFT; split <= RIGHT; ++split) {
+    switch (Split[split].midiMode) {
+      case oneChannel:
+        if (Split[split].midiChanMain-1 == channel) {
+          return split;
+        }
+        break;
+      case channelPerNote:
+        if ((Split[split].midiChanMainEnabled && Split[split].midiChanMain-1 == channel) ||
+            Split[split].midiChanSet[channel] == true) {
+          return split;
+        }
+        break;
+      case channelPerRow:
+        if ((Split[split].midiChanMainEnabled && Split[split].midiChanMain-1 == channel) ||
+            calculateRowPerChannelRow(split, channel) < NUMROWS) {
+          return split;
+        }
+        break;
+    }
+  }
+
+  return -1;
+}
 inline boolean inRange(int value, int lower, int upper) {
   return value >= lower && value <= upper;
 }
