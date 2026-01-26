@@ -33,7 +33,7 @@ boolean lowRowBendActive[NUMSPLITS];
 boolean lowRowCCXActive[NUMSPLITS];
 boolean lowRowCCXYZActive[NUMSPLITS];
 short lowRowInitialColumn[NUMSPLITS];
-short lastRestrikeColumn = 0;
+short lastRestrikeColumn[NUMSPLITS];
 
 inline boolean isLowRow() {
   if (sensorRow != 0) return false;
@@ -46,8 +46,6 @@ inline boolean isLowRow() {
 }
 
 void initializeLowRowState() {
-  lastRestrikeColumn = 0;
-
   for (byte col = 0; col < NUMCOLS; ++col) {
     lowRowColumnState[col] = inactive;
   }
@@ -57,6 +55,7 @@ void initializeLowRowState() {
     lowRowCCXActive[split] = false;
     lowRowCCXYZActive[split] = false;
     lowRowInitialColumn[split] = -1;
+    lastRestrikeColumn[split] = 0;
   }
 }
 
@@ -230,7 +229,7 @@ void handleLowRowState(boolean newVelocity, short pitchBend, short timbre, byte 
     switch (Split[sensorSplit].lowRowMode)
     {
       case lowRowRestrike:
-        if (lowRowSplitState[sensorSplit] == pressed && sensorCol == lastRestrikeColumn) {
+        if (lowRowSplitState[sensorSplit] == pressed && sensorCol == lastRestrikeColumn[sensorSplit]) {
           lowRowSplitState[sensorSplit] = continuous;
         }
         break;
@@ -326,7 +325,7 @@ void lowRowStart() {
   {
     case lowRowRestrike:
       lowRowSplitState[sensorSplit] = pressed;
-      lastRestrikeColumn = sensorCol;
+      lastRestrikeColumn[sensorSplit] = sensorCol;
       cell(0, 0).velocity = sensorCell->velocity;
       break;
     case lowRowStrum:
@@ -395,9 +394,9 @@ void lowRowStop() {
   switch (Split[sensorSplit].lowRowMode)
   {
     case lowRowRestrike:
-      if (lastRestrikeColumn && sensorCol == lastRestrikeColumn) {
+      if (lastRestrikeColumn[sensorSplit] && sensorCol == lastRestrikeColumn[sensorSplit]) {
         lowRowSplitState[sensorSplit] = inactive;
-        lastRestrikeColumn = 0;
+        lastRestrikeColumn[sensorSplit] = 0;
         cell(0, 0).velocity = 0;
       }
       break;
